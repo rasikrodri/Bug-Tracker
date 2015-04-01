@@ -1,0 +1,59 @@
+﻿@using BugTracker.Models
+
+@{
+
+    Project project = Model;
+    
+    <tr class="entryColor">
+        <td>@project.Name</td>
+        <td>@Html.ActionLink(@project.Tickets.Count().ToString(), "Index", "Tickets", new { query = project.Name, selectedFilters = "Project" }, new { data_toggle = "tooltip", data_original_title = "View Tickets" })</td>        
+        <td>@project.ProjectUsers.Count()</td>
+        <td class="action">
+           @Html.ActionLink(" ", "Details", new { id = project.Id }, new { @class = "btn btn-success icon-zoom-in", data_toggle = "tooltip", data_original_title = "View" })
+            
+        @if(HttpContext.Current.User.IsInRole("Project Manager"))
+        { 
+             @Html.ActionLink(" ", "Edit", "Projects", new { id = project.Id }, new { @class = "btn btn-info icon-edit", data_toggle = "tooltip", data_original_title = "Edit" })
+
+            
+            
+            @*@Html.ActionLink(" ", "Delete", new { id = project.Id }, new { @class = "btn btn-danger icon-trash", data_toggle = "tooltip", data_original_title = "Delete" })*@
+            
+            <span href="#myModal" role="button" data-target="#@project.Id.ToString()" data-toggle="modal">
+                <a class="btn btn-danger icon-trash" data-toggle="tooltip" data-original-title="Delete"></a>
+            </span>
+
+            <!--#Modal-->
+            <div class="modal fade" id="@project.Id.ToString()" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content" style="background-color:rgb(231, 239, 239)">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times</button>
+                            <h4 class="modal-title" id="myModalLabel">Warning</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row clearfix">
+                                <div class="col-md-1 column"></div>
+                                <div class="col-md-11 column">
+                                    <div class="row clearfix">
+                                        <h4>Are you sure you want to delete the selected Project?</h4>
+                                        <h4>"@project.Name"</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer" style="background-color:rgb(231, 239, 239)">
+                            <div class="form-actions no-color">
+                                @Html.ActionLink("Delete", "DeleteOne", "Projects", new { id = project.Id, query = @ViewBag.currentQuery, page = @ViewBag.Page }, new { @class = "btn btn-default" })
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        </td>
+    </tr>
+}
+

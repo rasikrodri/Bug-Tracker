@@ -1,0 +1,66 @@
+SignalR
+
+ //This is a way of populating the database throught code
+            if (!context.Roles.Any(r => r.Name == "Admin"))//The Lambda searches for a Name in Roles that equals "Admin"
+            {
+                //The right way baceuse it uses all the nescesary mechanisms
+                var store = new RoleStore<IdentityRole>(context);
+                var manager = new RoleManager<IdentityRole>(store);
+                var role = new IdentityRole { Name = "Admin" };
+
+                manager.Create(role);
+            }
+
+            if (!context.Roles.Any(r => r.Name == "Project Manager"))//The Lambda searches for a Name in Roles that equals "Admin"
+            {
+                var store = new RoleStore<IdentityRole>(context);
+                var manager = new RoleManager<IdentityRole>(store);
+                var role = new IdentityRole { Name = "Project Manager" };
+
+                manager.Create(role);
+            }
+
+            if (!context.Roles.Any(r => r.Name == "Developer"))//The Lambda searches for a Name in Roles that equals "Admin"
+            {
+                var store = new RoleStore<IdentityRole>(context);
+                var manager = new RoleManager<IdentityRole>(store);
+                var role = new IdentityRole { Name = "Developer" };
+
+                manager.Create(role);
+            }
+
+            if (!context.Roles.Any(r => r.Name == "Submitter"))//The Lambda searches for a Name in Roles that equals "Admin"
+            {
+                var store = new RoleStore<IdentityRole>(context);
+                var manager = new RoleManager<IdentityRole>(store);
+                var role = new IdentityRole { Name = "Submitter" };
+
+                manager.Create(role);
+            }
+
+
+            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(context));
+            //Add my self user as Administrator and Moderator
+            if (!context.Users.Any(r => r.Email == "rasikrodri@gmail.com"))//The Lambda searches for a Name in Roles that equals "Admin"
+            {
+                userManager.Create(new ApplicationUser
+                    {
+                        UserName = "rasikrodri@gmail.com",
+                        Email = "rasikrodri@gmail.com",
+                    }, "rodr1ras1k");
+            }
+
+            //create a new BTUser entry to match the AspNetUsers entry
+            var userId = userManager.FindByEmail("rasikrodri@gmail.com").Id;
+            userManager.AddToRole(userId, "admin");
+
+            var bt = new BugTracker2Entities();
+            if (!bt.BTUsers.Any(u => u.AspNetUserId == userId))
+            {
+                var btUser = new BTUser();
+                btUser.AspNetUserId = userId;
+                btUser.FirstName = "Rasik";
+                btUser.LastName = "Rodriguez";
+                bt.BTUsers.Add(btUser);
+                bt.SaveChanges();
+            }

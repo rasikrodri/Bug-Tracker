@@ -1,0 +1,132 @@
+﻿@using BugTracker.Models
+@using Blog
+@using Microsoft.AspNet.Identity;
+
+@{
+    Ticket ticket = Model;
+    string entryColor="";
+    string priorityColor="";
+    
+    if (ticket.TicketStatus.Name == "Processing" || ticket.TicketStatus.Name == "Pending")
+    {
+        entryColor = "active";
+    }
+    else if (ticket.TicketStatus.Name == "Open")
+    {
+        entryColor = "";
+    }
+    else if (ticket.TicketStatus.Name == "Closed")
+    {
+        entryColor = "success";
+    }
+    else if (ticket.TicketStatus.Name == "Canceled")
+    {
+        entryColor = "danger";
+    }
+    else if (ticket.TicketStatus.Name == "Error")
+    {
+        entryColor = "warning";
+    }
+
+
+    if (ticket.TicketPriority.Name == "Heigh" || ticket.TicketPriority.Name == "Very Heigh")
+    {
+        priorityColor = "danger";
+    }
+    else if (ticket.TicketPriority.Name == "Normal")
+    {
+        priorityColor = "success";
+    }
+
+    <tr class="@entryColor">
+        <td>@ticket.Title</td>
+        <td>@Html.ActionLink(@ticket.Project.Name, "Details", "Projects", new { id = ticket.ProjectId }, null) </td>
+        <td>@ticket.TicketType.Name</td>
+        <td>@ticket.TicketStatus.Name</td>
+        <td class="@priorityColor">@ticket.TicketPriority.Name</td>
+        <td>@ticket.OwnerUser.DisplayName</td>
+        @if (ticket.AssignedToUser != null)
+        {
+            <td>@ticket.AssignedToUser.DisplayName</td>
+        }
+        else
+        {
+            <td>None</td>
+        }
+
+        @*<td>@TextParsing.GetWordsFromHTML_EqualToCharAmmount_Regex(ticket.Description, 50).ToString()....</td>*@
+        @*<td style="text-align:center">@ticket.TicketComments.Count()</td>*@
+        <td>@ticket.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")</td>
+        @if (ticket.Updated != null)
+        {
+            <td>@ticket.Updated.Value.ToLocalTime().ToString("dd MMM yyyy h:mm tt")</td>
+        }
+        else
+        {
+            <td>N/A</td>
+        }
+        
+
+
+
+
+        <td class="action">
+            @Html.ActionLink(" ", "Details", new { id = ticket.Id }, new { @class = "btn btn-success icon-zoom-in", data_toggle = "tooltip", data_original_title = "View" })
+            @*<a class="btn btn-success" data-toggle="tooltip" href="#" title="" data-original-title="Zoom">
+                    <i class="icon-zoom-in"></i>
+                </a>*@
+
+@if (HttpContext.Current.User.IsInRole("Project Manager") || HttpContext.Current.User.Identity.GetUserId() == ticket.OwnerUserId)
+{
+            @Html.ActionLink(" ", "Edit", new { id = ticket.Id }, new { @class = "btn btn-info icon-edit", data_toggle = "tooltip", data_original_title = "Edit" })
+            @*<a class="btn btn-info" href="#">
+                    <i class="icon-edit"></i>
+                </a>*@
+}
+            
+    @if (HttpContext.Current.User.IsInRole("Project Manager"))
+    {
+
+            <span href="#myModal" role="button" data-target="#@ticket.Id.ToString()" data-toggle="modal">
+                <a class="btn btn-danger icon-trash" data-toggle="tooltip" data-original-title="Delete"></a>
+            </span>
+
+            <!--#Modal-->
+            <div class="modal fade" id="@ticket.Id.ToString()" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content" style="background-color:rgb(231, 239, 239)">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times</button>
+                            <h4 class="modal-title" id="myModalLabel">Warning</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row clearfix">
+                                <div class="col-md-1 column"></div>
+                                <div class="col-md-11 column">
+                                    <div class="row clearfix">
+                                        <h4>Are you sure you want to delete the selected Ticket?</h4>
+                                        <h4>"@ticket.Title"</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer" style="background-color:rgb(231, 239, 239)">
+                            <div class="form-actions no-color">
+                                @Html.ActionLink("Delete", "DeleteOne", "Tickets", new { id = ticket.Id, query = @ViewBag.currentQuery, page = @ViewBag.Page }, new { @class = "btn btn-default" })
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    }
+            <a>
+                @Html.ActionLink(" ", "History", new { id = ticket.Id }, new { @class = "btn btn-default icon-calendar", value = "H", data_toggle = "tooltip", data_original_title = "History" })
+            </a>
+            @*<a class="btn btn-default icon-calendar" href="#"></a>*@
+
+        
+        </td>
+    </tr>
+}

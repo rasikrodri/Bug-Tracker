@@ -9,23 +9,28 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using BugTracker.Models;
+using System.Net.Mail;
 
 namespace BugTracker.Controllers
 {
     [Authorize]
     public class AccountController : Controller
     {
+        private ApplicationDbContext db = new ApplicationDbContext();
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
 
         public AccountController()
         {
+            ViewBag.DoNotShowHeader = true;
         }
 
         public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
         {
             UserManager = userManager;
             SignInManager = signInManager;
+
+            ViewBag.DoNotShowHeader = true;
         }
 
         public ApplicationSignInManager SignInManager
@@ -58,6 +63,8 @@ namespace BugTracker.Controllers
         public ActionResult Login(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
+
+            ViewBag.DoNotShowHeader = true;
             return View();
         }
 
@@ -66,13 +73,36 @@ namespace BugTracker.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
+        public async Task<ActionResult> Login(LoginViewModel model, string log_in_As_Guest, string returnUrl)
         {
+            if (log_in_As_Guest != null)
+            {
+                model.Email = "guest@gmail.com"; model.Password = "rodr1ras1k";
+                return await SeeIfShouldEnter(model, returnUrl);
+            }
+
+            //// Requires the user to have a confirmed email before they can log on.
+            //var user = await UserManager.FindByNameAsync(model.Email);
+            //if (user != null)
+            //{
+            //    if (!await UserManager.IsEmailConfirmedAsync(user.Id))
+            //    {
+            //        ViewBag.errorMessage = "You must have a confirmed email to log in.";
+            //        return View("Error");
+            //    }
+            //}
+
+
             if (!ModelState.IsValid)
             {
+                ViewBag.DoNotShowHeader = true;
                 return View(model);
             }
 
+            return await SeeIfShouldEnter(model, returnUrl);
+        }
+        private async Task<ActionResult> SeeIfShouldEnter(LoginViewModel model, string returnUrl)
+        {
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
@@ -99,8 +129,10 @@ namespace BugTracker.Controllers
             // Require that the user has already logged in via username/password or external login
             if (!await SignInManager.HasBeenVerifiedAsync())
             {
+                ViewBag.DoNotShowHeader = true;
                 return View("Error");
             }
+
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
@@ -113,6 +145,7 @@ namespace BugTracker.Controllers
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.DoNotShowHeader = true;
                 return View(model);
             }
 
@@ -139,6 +172,7 @@ namespace BugTracker.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
+            ViewBag.DoNotShowHeader = true;
             return View();
         }
 
@@ -152,22 +186,49 @@ namespace BugTracker.Controllers
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.DisplayName = model.FirstName + " " + model.LastName;
+                user.Adress = model.Adress;
+                user.City = model.City;
+                user.State = model.State;
+                user.Zip = model.Zip;
+
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
+                    //await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
+
+
+                    //Now we need to get the id of the just created user
+                    var db = new ApplicationDbContext();
+                    var userId = db.Users.Single(u => u.UserName == model.Email).Id;
+                    //Now we can assign the role
+                    var helper = new UserHelper();
+                    helper.AddUserToRole(userId, "Submitter");
+
+
+                    
                     
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                    string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
-                    return RedirectToAction("Index", "Home");
+
+                    ViewBag.Message = "Check your email and confirm your account, you must be confirmed "
+                         + "before you can log in.";
+
+                    return View("Info");
+
+                    //return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
             }
 
+            ViewBag.DoNotShowHeader = true;
             // If we got this far, something failed, redisplay form
             return View(model);
         }
@@ -179,6 +240,7 @@ namespace BugTracker.Controllers
         {
             if (userId == null || code == null)
             {
+                ViewBag.DoNotShowHeader = true;
                 return View("Error");
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
@@ -190,6 +252,7 @@ namespace BugTracker.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPassword()
         {
+            ViewBag.DoNotShowHeader = true;
             return View();
         }
 
@@ -209,16 +272,35 @@ namespace BugTracker.Controllers
                     return View("ForgotPasswordConfirmation");
                 }
 
-                // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
-                // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                 //For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                 //Send an email with this link
+                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                 SendEmailWithSmtpClient(callbackUrl, model);
+                
+                //await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                 return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
+            ViewBag.DoNotShowHeader = true;
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+        public void SendEmailWithSmtpClient(string callbackUrl, ForgotPasswordViewModel model)
+        {
+            MailMessage mail = new MailMessage();
+            var toAdress = model.Email;
+            mail.To.Add(new MailAddress(toAdress));
+            mail.From = new MailAddress("rasikcoderfoundry@gmail.com");
+            mail.Subject = "Password Reset";
+            mail.Body = "Click the following link to reset your password " + callbackUrl;
+            mail.IsBodyHtml = true;
+            SmtpClient smtp = new SmtpClient();
+            smtp.Host = "smtp.gmail.com";
+            smtp.Credentials = new System.Net.NetworkCredential("rasikcoderfoundry@gmail.com", "Password-1!");
+            smtp.EnableSsl = true;
+            smtp.Send(mail);
         }
 
         //
@@ -226,6 +308,7 @@ namespace BugTracker.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPasswordConfirmation()
         {
+            ViewBag.DoNotShowHeader = true;
             return View();
         }
 
@@ -234,6 +317,7 @@ namespace BugTracker.Controllers
         [AllowAnonymous]
         public ActionResult ResetPassword(string code)
         {
+            ViewBag.DoNotShowHeader = true;
             return code == null ? View("Error") : View();
         }
 
@@ -246,6 +330,7 @@ namespace BugTracker.Controllers
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.DoNotShowHeader = true;
                 return View(model);
             }
             var user = await UserManager.FindByNameAsync(model.Email);
@@ -268,6 +353,7 @@ namespace BugTracker.Controllers
         [AllowAnonymous]
         public ActionResult ResetPasswordConfirmation()
         {
+            ViewBag.DoNotShowHeader = true;
             return View();
         }
 
@@ -278,6 +364,7 @@ namespace BugTracker.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
+            ViewBag.DoNotShowHeader = true;
             // Request a redirect to the external login provider
             return new ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl }));
         }
@@ -294,6 +381,8 @@ namespace BugTracker.Controllers
             }
             var userFactors = await UserManager.GetValidTwoFactorProvidersAsync(userId);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
+
+            ViewBag.DoNotShowHeader = true;
             return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
@@ -306,12 +395,14 @@ namespace BugTracker.Controllers
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.DoNotShowHeader = true;
                 return View();
             }
 
             // Generate the token and send it
             if (!await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider))
             {
+                ViewBag.DoNotShowHeader = true;
                 return View("Error");
             }
             return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
@@ -325,6 +416,7 @@ namespace BugTracker.Controllers
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
             if (loginInfo == null)
             {
+                ViewBag.DoNotShowHeader = true;
                 return RedirectToAction("Login");
             }
 
@@ -381,6 +473,7 @@ namespace BugTracker.Controllers
                 AddErrors(result);
             }
 
+            ViewBag.DoNotShowHeader = true;
             ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
@@ -391,6 +484,7 @@ namespace BugTracker.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
+            ViewBag.DoNotShowHeader = true;
             AuthenticationManager.SignOut();
             return RedirectToAction("Index", "Home");
         }
@@ -400,6 +494,7 @@ namespace BugTracker.Controllers
         [AllowAnonymous]
         public ActionResult ExternalLoginFailure()
         {
+            ViewBag.DoNotShowHeader = true;
             return View();
         }
 

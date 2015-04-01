@@ -1,0 +1,82 @@
+﻿@model BugTracker.Models.TicketAttachement
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<style>
+    textarea {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: inherit;
+        height: auto;
+        max-width: 1000px;
+    }
+
+    textarea {
+        height: auto;
+    }
+</style>
+
+<h2>New Ticket Attachement</h2>
+
+@using (Html.BeginForm("Create", "TicketAttachements", FormMethod.Post, new { enctype = "multipart/form-data" }))//Needed to be able to upload files
+{
+    @Html.AntiForgeryToken()
+    
+    @Html.HiddenFor(m=>m.TicketId)
+    
+    <div class="form-horizontal">
+        @*<h4>TicketAttachement</h4>*@
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.TicketId, "Ticket Title", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.LabelFor(model => model.TicketId, (string)ViewBag.TicketTitle, htmlAttributes: new { @class = "control-label col-md-2" })
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.Label("Attach File:", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10" style="text-align:center; align-content:center">
+                <input type="file" value="Choose File" id="fileToUpload" name="fileToUpload" class="btn btn-default" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Description, 10, 40, null)
+                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+            </div>
+        </div>        
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+    
+    @*Reference to the js ckeditor*@
+    <script src="~/Scripts/ckeditor/ckeditor.js"></script>
+    <script>
+    CKEDITOR.replace('Description', {
+        toolbar: [
+
+            { name: 'document', items: ['Maximize', 'Templates'] },	// Defines toolbar group with name (used to create voice label) and items in 3 subgroups.
+            //'/',																					// Line break - next group will be placed in new line.
+            ['Styles', 'Format', 'Font', 'FontSize', 'TextColor', 'BGColor'],
+            ['Bold', 'Italic', 'Underline', 'StrikeThrough', '-', 'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', 'Find', 'Replace', '-', 'Outdent', 'Indent', '-', 'Print'],
+            ['ShowBlocks', 'NumeredList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+
+        ]
+    });
+    </script>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

@@ -1,0 +1,145 @@
+﻿@model BugTracker.Models.GenericNotification
+
+@{
+    ViewBag.Title = "Details";
+}
+
+
+    <!-- Tools -->
+<section id="tools">
+    <ul class="breadcrumb" id="breadcrumb">
+        <li class="title" id="pagetitle"><a href="@Url.Action("Index", ViewBag.Controller)">@ViewBag.Controller</a></li>
+        @if (ViewBag.Action != null && ViewBag.Id == null)
+        {
+            <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller)">@ViewBag.Action</a></li>
+        }
+        else if (ViewBag.Action != null && ViewBag.Id != null)
+        {
+            <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller, new { id = ViewBag.Id })">@ViewBag.Action</a></li>
+        }
+    </ul>
+    <div id="toolbar">
+        <div class="btn-group">
+            
+            @if(Model.FromUser != null)
+            {
+                <a class="btn" data-toggle="toolbar-tooltip" title="" data-original-title="Reply"
+                   href="@Url.Action("Create", "GenericNotifications", new {toUserId = Model.FromUserId})">
+                    Reply
+                    <i class="icon-file-text-alt"></i>
+                </a>
+                <a class="btn" data-toggle="toolbar-tooltip" title="" data-original-title="Reply"
+                   href="@Url.Action("Create", "GenericNotifications")">
+                    New
+                    <i class="icon-file-text-alt"></i>
+                </a>
+            }
+            else
+            {
+                <a class="btn" data-toggle="toolbar-tooltip" title="" data-original-title="Reply"
+                   href="@Url.Action("Create", "GenericNotifications")">
+                    New
+                    <i class="icon-file-text-alt"></i>
+                </a>
+            }
+               
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<!-- Content -->
+<div id='content'>
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            <i class='icon-building icon-large'></i>
+            
+            @if(Model.FromUser != null)
+            {
+                <a>Message from "@Model.FromUser.DisplayName" on "@Model.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")"</a>
+            }
+            else
+            {
+                <a>Message from "Adnimistration" on "@Model.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")"</a>
+            }
+
+            @*@Html.ActionLink("Back to List", "Index","GenericNotifications",null,null) |*@
+            @*@Html.ActionLink("New Comment", "Create", "TicketComments", new { ticketId = ticket.Id, returnToController = "Tickets", returnToAction = "Details" }, null)*@
+        </div>
+        <div class='panel-body'>
+            <form>
+                <fieldset>
+                    <div class="row">
+                        <div class="col-md-1">
+                            <label>Title:</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.DisplayFor(model => model.Title)
+                        </div>                        
+                    </div>
+                    @if (Model.LinkToObjectDetails != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-1">
+                                <label>Link:</label>
+                            </div>
+                            <div class="col-md-9">
+                                <a href="@Url.Content(Model.LinkToObjectDetails)" target="_blank">Link To Object</a>
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-md-1">
+                            <label>Message:</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-10">
+                            @Html.Raw(HttpUtility.HtmlDecode(Model.Message))
+                            @*@Html.DisplayFor(model => model.Message)*@
+                        </div>
+                        <div class="col-md-1"></div>
+                    </div>
+
+
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Reference to the js ckeditor*@
+<script src="~/Scripts/ckeditor/ckeditor.js"></script>
+@*<script>
+        This will create the text editor with all the controlls
+        CKEDITOR.replace('Body');
+    </script>*@
+<script>
+        CKEDITOR.replace('Description', {
+                    toolbar: [
+
+                        { name: 'document', items: ['Maximize'] },	// Defines toolbar group with name (used to create voice label) and items in 3 subgroups.
+                        //'/',																					// Line break - next group will be placed in new line.
+                        ['FontSize'],
+                        ['Bold', 'Italic', 'Underline', 'StrikeThrough', '-', 'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', 'Find','-', 'Outdent', 'Indent', '-', 'Print'],
+                        ['NumeredList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+
+                    ]
+        });
+        //CKEDITOR.replace('attachementsdescription', {
+        //    toolbar: [
+
+        //        { name: 'document', items: ['Maximize'] },	// Defines toolbar group with name (used to create voice label) and items in 3 subgroups.
+        //        //'/',																					// Line break - next group will be placed in new line.
+        //        ['FontSize'],
+        //        ['Bold', 'Italic', 'Underline', 'StrikeThrough', '-', 'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', 'Find', '-', 'Outdent', 'Indent', '-', 'Print'],
+        //        ['NumeredList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+
+        //    ]
+        //});
+</script>

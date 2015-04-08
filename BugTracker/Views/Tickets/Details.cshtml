@@ -1,0 +1,359 @@
+﻿@using PagedList.Mvc;
+@model PagedList.IPagedList<BugTracker.Models.TicketComment>
+@using Microsoft.AspNet.Identity;
+@using BugTracker.Models;
+
+
+
+
+
+@{
+    ViewBag.Controller = "Tickets";
+    ViewBag.Action = "Details";
+}
+
+@*<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>*@
+<style>
+    a.historyAlert {
+        color: lightgray;
+        /*text-decoration:underline;*/
+    }
+</style>
+
+@{
+    string Message = "Last Modified On ";
+    Dictionary<string, object[]> HistoryDictionary = (Dictionary<string, object[]>)ViewBag.LatestTicketChanges;
+}
+
+@{
+    Ticket ticket = (Ticket)ViewBag.Ticket;
+}
+
+
+    <!-- Tools -->
+<section id="tools">
+    <ul class="breadcrumb" id="breadcrumb">
+        <li class="title" id="pagetitle"><a href="@Url.Action("Index", ViewBag.Controller)">@ViewBag.Controller</a></li>
+        @if (ViewBag.Action != null && ViewBag.Id == null)
+        {
+            <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller)">@ViewBag.Action</a></li>
+        }
+        else if (ViewBag.Action != null && ViewBag.Id != null)
+        {
+            <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller, new { id = ViewBag.Id })">@ViewBag.Action</a></li>
+        }
+    </ul>
+    <div id="toolbar">
+        <div class="btn-group">
+            <a class="btn" data-toggle="toolbar-tooltip" title="" data-original-title="New Ticket"
+               href="@Url.Action("Create", "TicketComments", new { ticketId = ticket.Id, returnToController = "Tickets", returnToAction = "Details" })">
+                New Comment
+                <i class="icon-file-text-alt"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<!-- Content -->
+<div id='content'>
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            <i class='icon-building icon-large'></i>
+            Ticket Info
+            @if (HttpContext.Current.User.IsInRole("Project Manager") || HttpContext.Current.User.Identity.GetUserId() == ticket.OwnerUserId)
+            {
+                @Html.ActionLink("Edit", "Edit", new { id = ticket.Id })
+                <span>|</span>
+            }
+            
+            @Html.ActionLink("Back to List", "Index") |
+            @Html.ActionLink("New Comment", "Create", "TicketComments", new { ticketId = ticket.Id, returnToController = "Tickets", returnToAction = "Details" }, null)            
+            @Html.ActionLink(" ", "History", new { id = ticket.Id }, new { @class = "btn btn-default icon-calendar", value = "H", data_toggle = "tooltip", data_original_title = "History" })
+            
+        </div>
+        <div class='panel-body'>
+
+            <div class="col-md-12">
+                <div class='panel panel-default'>
+                    <div class='panel-heading'>
+                        <i class='icon-edit icon-large'></i>
+                        Details
+                    </div>
+                    <div class='panel-body'>
+                        @*<form>*@
+                            <div class="form-group">
+                                <form>
+                                <fieldset>
+                                    @*left side*@
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Title</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @Html.DisplayFor(model => ticket.Title)
+                                                @if (HistoryDictionary.ContainsKey("Title"))
+                                                {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["Title"][0].ToString()">
+                                                    @Message @HistoryDictionary["Title"][1].ToString()
+                                                </a>}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Project</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @Html.DisplayFor(model => ticket.Project.Name)
+                                                @if (HistoryDictionary.ContainsKey("ProjectId"))
+                                                {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["ProjectId"][2].ToString()">
+                                                    @Message @HistoryDictionary["ProjectId"][1].ToString()
+                                                </a>}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Priority</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @Html.DisplayFor(model => ticket.TicketPriority.Name)
+                                                @if (HistoryDictionary.ContainsKey("TicketPriorityId"))
+                                                {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["TicketPriorityId"][2].ToString()">
+                                                    @Message @HistoryDictionary["TicketPriorityId"][1].ToString()
+                                                </a>}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Status</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @Html.DisplayFor(model => ticket.TicketStatus.Name)
+                                                @if (HistoryDictionary.ContainsKey("TicketStatusId"))
+                                                {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["TicketStatusId"][2].ToString()">
+                                                    @Message @HistoryDictionary["TicketStatusId"][1].ToString()
+                                                </a>}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Type</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @Html.DisplayFor(model => ticket.TicketType.Name)
+                                                @if (HistoryDictionary.ContainsKey("TicketTypeId"))
+                                                {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["TicketTypeId"][2].ToString()">
+                                                    @Message @HistoryDictionary["TicketTypeId"][1].ToString()
+                                                </a>}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*right side*@
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Created</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @ticket.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")
+                                                @*@Html.DisplayFor(model => ticket.Created)*@
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Creator</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @UserHelper.GetUserDisplayName(ticket.OwnerUserId)
+                                                @*@Html.DisplayFor(model => ticket.OwnerUserId)*@
+                                            </div>
+                                        </div>
+                                        @if (ticket.Updated != null)
+                                        {
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <label>Updated</label>
+                                                </div>
+                                                <div class="col-md-9">
+                                                    @ticket.Updated.Value.ToLocalTime().ToString("dd MMM yyyy h:mm tt")
+                                                    @*@Html.DisplayFor(model => ticket.Updated)*@
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label>Assignee</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                @UserHelper.GetUserName(ticket.AssignedToUserId)
+                                                @if (HistoryDictionary.ContainsKey("AssignedToUserId"))
+                                                {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["AssignedToUserId"][2].ToString()">
+                                                    @Message @HistoryDictionary["AssignedToUserId"][1].ToString()
+                                                </a>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                </form>
+                            </div>
+                        @*</form>*@
+                    </div>
+                </div>
+            </div>
+
+            @if(ticket.TicketAttachments.Count() != 0)
+            { 
+            <div class="col-md-12">
+                <div class='panel panel-default'>
+                    <div class='panel-heading'>
+                        <i class='icon-edit icon-large'></i>
+                        Ticket Attachements
+                    </div>
+                    <div class='panel-body'>
+                        @*<form>*@
+                        <div class="form-group">
+                            <form>
+                                <fieldset>
+                                    <!--add Attachements Links-->
+                                    @{
+                                        //In every main row we will have a full attachement divided into 3 columns
+                                        int ticketAttachementsCount = ticket.TicketAttachments.Count();
+                                        if (ticketAttachementsCount != 0)
+                                        {
+                                            foreach (var att in ticket.TicketAttachments)
+                                            {
+                                                    <div class="col-md-12">
+                                                        <p>By @att.User.DisplayName On "@att.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")"</p>
+                                                        <div class="row">
+                                                            @foreach(var adress in SavingHelper.StringToListOfStrings(att.FilesPath))
+                                                            {
+                                                                <div class="col-md-3"><a href="@Url.Content(adress)" target="_blank">@SavingHelper.GetCleanFileNameOfAttachement(adress)</a></div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    }
+                                                    }
+                                                    }
+                                </fieldset>
+                            </form>
+                        </div>
+                        @*</form>*@
+                    </div>
+                </div>
+            </div>
+            }
+
+            <div class="col-md-12">
+                <div class='panel panel-default'>
+                    <div class='panel-heading'>
+                        <i class='icon-edit icon-large'></i>
+                        Ticket Description
+                    </div>
+                    <div class='panel-body'>
+                        @*<form>*@
+                        <div class="form-group">
+                            <form>
+                                <fieldset>
+                                    @*<legend>Description</legend>*@
+                                    <div class="row" style="text-align:center">
+                                        <a href="javascript:ShowHideSection('description-area', 'descTitle')">
+                                            <h3>
+                                                <lable class="post-title" id="descTitle">
+                                                    Hide Description
+
+                                                </lable>
+                                            </h3>
+                                        </a>
+                                        <hr />
+                                        <div class="post-subtitle" style="display:block" id="description-area">
+                                            @Html.Raw(HttpUtility.HtmlDecode(ticket.Description))
+                                            @if (HistoryDictionary.ContainsKey("Description"))
+                                            {<a class="historyAlert" href="#" data-toggle="tooltip" data-placement="top" data-original-title="@HistoryDictionary["Description"][2].ToString()">
+                                                @Message @HistoryDictionary["Description"][1].ToString()
+                                            </a>}
+                                        </div>
+                                        
+                                    </div>
+
+                                </fieldset>
+                            </form>
+                        </div>
+                        @*</form>*@
+                    </div>
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+
+
+    @foreach (var comment in Model)
+    {
+            <div class='panel panel-default'>
+                <div class='panel-heading'>
+                    <i class='icon-building icon-large'></i>
+                    Comment by @comment.User.DisplayName on @comment.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")
+                </div>
+                <div class='panel-body'>
+                    <form>
+                        <fieldset>
+                            @*<legend>Default Inputs</legend>*@
+                            <div class="row">
+                                <div class="col-md-1"></div>
+                                <div class="col-md-10">
+                                    @Html.Raw(HttpUtility.HtmlDecode(comment.Description))
+                                </div>
+                                <div class="col-md-1"></div>
+                            </div>
+
+
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+    }
+
+
+    Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("Details", new { ticketId = ticket.Id, page }))
+
+
+
+</div>
+
+<script>
+    function ShowHideSection(id, titleId) {
+        var element = document.getElementById(id);
+        var title = document.getElementById(titleId);
+        if (element) {
+            var display = element.style.display;
+
+            if (display == "none") {
+                element.style.display = "block";
+                title.textContent = "Hide Description";
+            } else {
+                element.style.display = "none";
+                title.textContent = "Show Description";
+            }
+        }
+    }
+</script>
+
+@*<script type="text/javascript">
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>*@
+
+
+

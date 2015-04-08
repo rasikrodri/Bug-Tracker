@@ -1,0 +1,100 @@
+﻿@model BugTracker.Models.UserRole
+
+@{
+    ViewBag.Title = "RolesAdd_RemoveUsers";
+}
+
+
+
+<!-- Tools -->
+<section id="tools">
+    <ul class="breadcrumb" id="breadcrumb">
+        <li class="title" id="pagetitle"><a href="@Url.Action("Index", (string)ViewBag.Controller)">@ViewBag.Controller</a></li>
+    </ul>
+</section>
+
+@using (Html.BeginForm())
+{
+    <form>
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <!-- Content -->
+        <div id='content'>
+            <div class="col-md-12">
+                <div class='panel panel-default'>
+                    <div class='panel-heading'>
+                        <i class='icon-edit icon-large'></i>
+                        Role
+                    </div>
+
+                    <div class='panel-body'>
+                        <fieldset>
+                            <div class="form-group">
+                                <div class="form-group col-md-12" style="text-align:center">
+                                    <h2>@ViewBag.Role</h2>
+                                </div>
+                            </div>
+                        </fieldset>
+
+
+
+                        <div class="col-md-6" style="text-align:center">
+                            <div class='panel panel-default'>
+                                <div class='panel-heading'>
+                                    <i class='icon-edit icon-large'></i>
+                                    Users In Role
+                                </div>
+                                <div class='panel-body sizedlist'>
+                                    @*<form>*@
+                                    <fieldset>
+                                        <div class="form-group">
+                                            @Html.ListBoxFor(m => Model.selectedSubscribedUsersId, Model.subscribedUsers as MultiSelectList, new { style = "height:200px; width:350px" })
+                                        </div>
+                                        <div class="row"></div>
+                                        <div class="form-group">
+                                            <input type="submit" name="removeButton" value="remove" class="btn btn-default" />
+                                        </div>
+                                    </fieldset>
+                                    @*</form>*@
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" style="text-align:center">
+                            <div class='panel panel-default'>
+                                <div class='panel-heading'>
+                                    <i class='icon-edit icon-large'></i>
+                                    User Not In Role
+                                </div>
+                                <div class='panel-body'>
+                                    @*<form>*@
+                                    <fieldset>
+                                        <div class="form-group">
+                                            @Html.ListBoxFor(m => Model.selecteNoneSubscribedUsers, Model.noneSubscribedUsers as MultiSelectList, new { style = "height:200px; width:350px" })
+                                        </div>
+                                        <div class="row"></div>
+                                        <div class="form-group">
+                                            <input type="submit" name="addButton" value="add" class="btn btn-default" />
+                                        </div>
+                                    </fieldset>
+                                    @*</form>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    
+                    
+                </div>
+            </div>
+
+
+           
+        </div>
+
+    </form>
+
+}

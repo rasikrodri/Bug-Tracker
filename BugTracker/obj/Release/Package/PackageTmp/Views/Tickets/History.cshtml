@@ -1,0 +1,195 @@
+﻿@using BugTracker.Models
+@using Blog
+@{
+    ViewBag.Title = "History";
+}
+
+
+
+<!-- Tools -->
+<section id="tools">
+    <ul class="breadcrumb" id="breadcrumb">
+        <li class="title" id="pagetitle"><a href="@Url.Action("Index", (string)ViewBag.Controller)">@ViewBag.Controller /History/@Model.Id</a></li>
+    </ul>
+
+
+    <div id="toolbar">
+        
+    </div>
+</section>
+
+<!-- Content -->
+<div id="content">
+    <div class="panel panel-default grid">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-md-1">
+                    @*<i class="icon-file-text-alt icon-large"></i>*@
+                    History
+                </div>
+
+
+
+                <div class="col-md-4" style="text-align:center">
+                    <div class="panel-tools">
+                        <div class="btn-group">
+                            @*<a class="btn" href="#">
+                        <i class="icon-wrench"></i>
+                        Settings
+                    </a>*@
+                            @*<a class="btn" href="#">
+                        <i class="icon-filter"></i>
+                        Filters
+                    </a>*@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="badge" style="margin-top:9px">@ViewBag.FoundCount.ToString() history items found</div>
+                </div>                
+            </div>
+        </div>
+
+
+
+
+        <table class="table" id="tableForDatatable">
+            <thead>
+                
+                <tr>
+                    <th>By</th> 
+                    <th>Date</th>             
+                    <th>Title</th>       
+                    <th>Project</th>
+                    <th>Type</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assignee</th>
+                    <th>Description</th>     
+                </tr>
+            </thead>
+            <tbody>
+        @{
+            Ticket ticket = Model;
+            int countName = 0;
+            foreach (Ticket oldTicket in ViewBag.History)
+            {
+                countName++;
+                <tr>
+                    <td>@oldTicket.OwnerUser.DisplayName</td>
+
+                    <td>@oldTicket.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")</td>
+
+                    @if (oldTicket.Title != null)
+                    {
+                        <td class="success">@oldTicket.Title</td>}
+                    else
+                    {
+                    <td></td>}
+
+                    @if (oldTicket.Project != null)
+                    {
+                        <td class="success">@oldTicket.Project.Name</td>}
+                    else
+                    {
+                    <td></td>}
+
+                    @if (oldTicket.TicketType != null)
+                    {
+                        <td class="success">@oldTicket.TicketType.Name</td>}
+                    else
+                    {
+                    <td></td>}
+
+                    @if (oldTicket.TicketPriority != null)
+                    {
+                        <td class="success">@oldTicket.TicketPriority.Name</td>}
+                    else
+                    {
+                    <td></td>}
+
+                    @if (oldTicket.TicketStatus != null)
+                    {
+                        <td class="success">@oldTicket.TicketStatus.Name</td>}
+                    else
+                    {
+                    <td></td>}
+
+                    @if (oldTicket.AssignedToUser != null)
+                    {
+                        <td class="success">@oldTicket.AssignedToUser.DisplayName</td>}
+                    else
+                    {
+                    <td></td>}
+
+                    @if (oldTicket.Description != null)
+                    {
+                        
+                        <td >
+                            @*<a class="btn btn-danger icon-trash" data-original-title="Show Description" data-toggle="tooltip" href="#myModal">
+                                Description
+                            </a>*@
+                            @*@TextParsing.GetWordsFromHTML_EqualToCharAmmount_Regex(oldTicket.Description, 20).ToString()....*@
+
+                            <span href="#myModal" role="button" data-target="#@countName.ToString()" data-toggle="modal">
+                                <a class="btn btn-default" data-toggle="tooltip" data-original-title="Show Description">Description</a>
+                            </span>
+
+                            <!--#Modal-->
+                            <div class="modal fade" id="@countName.ToString()" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+                                <div class="modal-dialog" style="width:85%">
+                                    @*<div class="modal-content" style="background-color:rgb(231, 239, 239)">*@
+                                        <div class="modal-body">
+
+                                            <div class="col-md-12">
+                                                <div class='panel panel-body'>
+                                                    <div class='panel-heading'>
+                                                        <i class='icon-edit icon-large'></i>
+                                                        Description before changed On "@oldTicket.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")
+                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times</button>
+                                                    </div>
+                                                    <div class='panel-body'>
+                                                        <form>
+                                                            <fieldset>
+                                                                @*<legend>Description</legend>*@
+                                                                <div class="row">
+                                                                    <div class="post-subtitle" style="display:block; font-size:16px" id="description-area">
+                                                                        @Html.Raw(HttpUtility.HtmlDecode(oldTicket.Description))
+                                                                    </div>
+                                                                    <hr />
+                                                                    <div class=" success" style="text-align:right">
+                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                                    </div>
+                                                                                                                                                                    
+                                                                </div>
+                                                            </fieldset>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div> 
+
+                                        </div>
+                                    @*</div>*@
+                                </div>
+                            </div>
+                        </td>}
+                    else
+                    {
+                    <td></td>}
+                </tr>
+            }
+        }
+        </table>        
+    </div>
+</div>
+
+
+@section Scripts{
+<script src="/js/bootstrap-multiselect.js"></script>
+<script>
+
+    //    $(document).ready(function() {
+    //    $('#tableForDatatable').dataTable();
+    //} );
+</script>
+}

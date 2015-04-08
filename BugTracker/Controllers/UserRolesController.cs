@@ -187,5 +187,20 @@ namespace BugTracker.Controllers
         //        return View();
         //    }
         //}
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+
+                if (db != null)
+                {
+                    db.Dispose();
+                    db = null;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

@@ -328,6 +328,8 @@ namespace BugTracker.Controllers
                 _userManager = null;
             }
 
+
+
             base.Dispose(disposing);
         }
 

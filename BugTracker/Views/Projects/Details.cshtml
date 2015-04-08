@@ -1,0 +1,106 @@
+﻿@model BugTracker.Models.Project
+
+@{
+    ViewBag.Title = "Details";
+}
+
+
+<section id="tools">
+    <ul class="breadcrumb" id="breadcrumb">
+        <li class="title" id="pagetitle"><a href="@Url.Action("Index", ViewBag.Controller)">@ViewBag.Controller</a></li>
+        @if (ViewBag.Action != null && ViewBag.Id == null)
+        {
+            <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller)">@ViewBag.Action</a></li>
+        }
+        else if (ViewBag.Action != null && ViewBag.Id != null)
+        {
+            <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller, new { id = ViewBag.Id })">@ViewBag.Action</a></li>
+        }
+    </ul>
+    <div id="toolbar">
+        <div class="btn-group">
+            <a class="btn" data-toggle="toolbar-tooltip" title="" data-original-title="New Ticket"
+               href="@Url.Action("Create", "Projects", new { returnToController = "Projects", returnToAction = "Details" })">
+                New Project
+                <i class="icon-file-text-alt"></i>
+            </a>
+        </div>
+    </div>
+    
+</section>
+
+
+
+
+
+<!-- Content -->
+<div id='content'>
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            <i class='icon-building icon-large'></i>
+            Project Details
+            @Html.ActionLink("Back to List", "Index")
+        @if(HttpContext.Current.User.IsInRole("Project Manager"))
+        {
+            <span>|</span>
+            Html.ActionLink("Edit", "Edit", new { id = @Model.Id });
+            <span>|</span>
+            Html.ActionLink("New Project", "Create", "Projects", new { returnToController = "Projects", returnToAction = "Details" }, null);
+        }
+            
+        </div>
+        <div class='panel-body'>
+            <form>
+                <fieldset>
+                    @*<legend>Default Inputs</legend>*@
+
+                    @*left side*@
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label>Name</label>
+                            </div>
+                            <div class="col-md-9">
+                                @Html.DisplayFor(model => @Model.Name)
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+
+            <div class='panel panel-default'>
+                <div class='panel-heading'>
+                    <i class='icon-building icon-large'></i>
+                    Developers in this project
+                </div>
+                <div class='panel-body'>
+                    <form>
+                        <fieldset>
+                            @*<legend>Default Inputs</legend>*@
+
+                            @*left side*@
+                            <div class="col-md-6">
+                                <div class="row">
+                                    @{
+                                        <ul class="list-group">
+                                            @foreach (var user in Model.ProjectUsers)
+                                            {
+                                                <li class="list-group-item">@user.User.DisplayName</li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    @*<p>
+        @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+        @Html.ActionLink("Back to List", "Index")
+    </p>*@

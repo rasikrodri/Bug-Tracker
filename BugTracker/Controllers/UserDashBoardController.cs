@@ -21,5 +21,20 @@ namespace BugTracker.Controllers
             ViewBag.TicketsModel = db.Tickets.Include(t => t.Project).Include(t => t.TicketPriority).Include(t => t.TicketStatus).Include(t => t.TicketType);
             return View();
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+
+                if (db != null)
+                {
+                    db.Dispose();
+                    db = null;
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

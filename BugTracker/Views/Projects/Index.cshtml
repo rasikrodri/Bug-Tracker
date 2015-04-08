@@ -1,0 +1,172 @@
+﻿@*@model IEnumerable<BugTracker.Models.Ticket>*@
+@using Blog
+
+
+@model PagedList.IPagedList<BugTracker.Models.Project>
+@using PagedList.Mvc;
+@*@model IEnumerable<Blog.Models.Post>*@
+@using System.Text
+@using HtmlAgilityPack
+
+@section Css {
+
+    <link rel="stylesheet" href="/css/bootstrap-multiselect.css" type="text/css">
+}
+
+
+
+
+
+
+
+<!-- Tools -->
+<section id="tools">
+    <ul class="breadcrumb" id="breadcrumb">
+        <li class="title" id="pagetitle"><a href="@Url.Action("Index", (string)ViewBag.Controller)">@ViewBag.Controller</a></li>
+    </ul>
+
+
+    <div id="toolbar">
+        <div class="btn-group">
+            @if (HttpContext.Current.User.IsInRole("Project Manager"))
+            {
+                <a class="btn" data-toggle="toolbar-tooltip" title="" data-original-title="New Project"
+                   href="@Url.Action("Create","Projects",null)">
+                    New
+                    <i class="icon-file-text-alt"></i>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Content -->
+<div id="content">
+    <div class="panel panel-default grid">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-md-1">
+                    Projects
+                </div>
+                <div class="col-md-1">
+                    @if (HttpContext.Current.User.IsInRole("Submitter"))
+                    {
+                            <p>
+                                @Html.ActionLink("Create New", "Create", "Projects", null, new { @class = "icon-next icon-large" })
+                            </p>
+                    }
+                </div>
+
+                <div class="col-md-3">
+                    <div class="panel-tools">
+                        <div class="btn-group">
+                            @*<a class="btn" href="#">
+                                    <i class="icon-wrench"></i>
+                                    Settings
+                                </a>*@
+                            @*<a class="btn" href="#">
+                                    <i class="icon-filter"></i>
+                                    Filters
+                                </a>*@
+                        </div>
+                        <div class="badge" style="margin-top:11px">@ViewBag.FoundCount.ToString() items found</div>
+                    </div>
+                </div>
+
+
+                @using (Html.BeginForm("Index", "Projects", FormMethod.Post, new { name = "form" }))
+                {
+                    <div class="col-md-1">
+                        <a class="btn btn-default" data-toggle="toolbar-tooltip" title="" data-original-title="Clear Filters and Search"
+                           href="@Url.Action("Index","Projects",null)">
+                            Reset
+                            <i class="icon-refresh"></i>
+                        </a>
+                    </div>
+
+                    <div id="example-collapse-accordion-one" style="display: none" class="panel-collapse collapse in col-md-2">
+                        <div class="panel-body" style="padding-top:0px;padding-bottom:0px" data-toggle="toolbar-tooltip" title="" data-original-title="Search Filters">
+                            @Html.ListBox("selectedFilters", ViewBag.SearchFilters.searchFilters as MultiSelectList, new { @id = "searchBy" })
+                        </div>
+                    </div>
+                    <input type="hidden" name="page" />
+                    <input type="hidden" name="sortingBy" value="@ViewBag.SortingBy" />
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input class="form-control" placeholder="Quick search..." type="text" id="query" name="query" value="@ViewBag.currentQuery">
+                            <span class="input-group-btn">
+                                <button class="btn" type="submit">
+                                    <i class="icon-search"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+
+
+
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+
+
+                    <th>
+                        <a class="btn btn-default" data-sortingby="@(ViewBag.SortingBy == "name" ? "nameReverse" : "name" )">
+                            Name<i class="glyphicon @(ViewBag.SortingBy == "name" ? "glyphicon-chevron-up" : ViewBag.SortingBy == "nameReverse" ? "glyphicon-chevron-down" : "")"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="btn btn-default" data-sortingby="@(ViewBag.SortingBy == "tickets#" ? "tickets#Reverse" : "tickets#" )">
+                            Tickets# <i class="glyphicon @(ViewBag.SortingBy == "tickets#" ? "glyphicon-chevron-up" : ViewBag.SortingBy == "tickets#Reverse" ? "glyphicon-chevron-down" : "")"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="btn btn-default" data-sortingby="@(ViewBag.SortingBy == "users#" ? "users#Reverse" : "users#" )">
+                            Users# <i class="glyphicon @(ViewBag.SortingBy == "users#" ? "glyphicon-chevron-up" : ViewBag.SortingBy == "users#Reverse" ? "glyphicon-chevron-down" : "")"></i>
+                        </a>
+                    </th>
+                    <th class="actions">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    Html.RenderPartial("_ProjectRowPartial", item);
+                }
+        </table>
+    </div>
+    Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("Index", "Projects",
+                    new { query = @ViewBag.currentQuery, page, sortingBy = ViewBag.SortingBy }))
+</div>
+
+@section Scripts {
+    <script src="/js/bootstrap-multiselect.js"></script>
+    <script>
+      var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+      (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+      g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+      s.parentNode.insertBefore(g, s)
+      }(document, 'script'));
+
+      $(document).ready(function () {
+          $('#searchBy').multiselect();
+          //$('#searchBy').show();
+          $('#example-collapse-accordion-one').toggle();//If it is hidden then it will show block and vise versa
+          //$("#id").css("display", "block");
+
+          $('th a').click(function (event) {
+              event.preventDefault();
+              form.page.value = 1;
+              form.sortingBy.value = $(this).data('sortingby');
+              form.submit();
+          })
+      });
+    </script>
+}

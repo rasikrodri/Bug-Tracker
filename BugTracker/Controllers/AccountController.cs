@@ -10,6 +10,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using BugTracker.Models;
 using System.Net.Mail;
+using System.Collections.Generic;
+using System.Net;
 
 namespace BugTracker.Controllers
 {
@@ -194,7 +196,7 @@ namespace BugTracker.Controllers
                 user.City = model.City;
                 user.State = model.State;
                 user.Zip = model.Zip;
-
+                
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -209,14 +211,14 @@ namespace BugTracker.Controllers
                     helper.AddUserToRole(userId, "Submitter");
 
 
-                    
-                    
+
+
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
                     string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                     var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
-
+                    //await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                    SendEmailWithSmtpClient("Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>", model.Email, true);
 
                     ViewBag.Message = "Check your email and confirm your account, you must be confirmed "
                          + "before you can log in.";
@@ -276,7 +278,7 @@ namespace BugTracker.Controllers
                  //Send an email with this link
                  string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
                  var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                 SendEmailWithSmtpClient(callbackUrl, model);
+                 SendEmailWithSmtpClient("Password Reset", "Click the following link to reset your password " + callbackUrl, model.Email, true);
                 
                 //await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
                  return RedirectToAction("ForgotPasswordConfirmation", "Account");
@@ -287,19 +289,33 @@ namespace BugTracker.Controllers
             return View(model);
         }
 
-        public void SendEmailWithSmtpClient(string callbackUrl, ForgotPasswordViewModel model)
+        public void SendEmailWithSmtpClient(string subject, string body, string _emailTo, bool _isBodyHTML = false, string _emailFrom = "rasikbugtracker@gmail.com", List<string> _attachements = null)
         {
-            MailMessage mail = new MailMessage();
-            var toAdress = model.Email;
-            mail.To.Add(new MailAddress(toAdress));
-            mail.From = new MailAddress("rasikcoderfoundry@gmail.com");
-            mail.Subject = "Password Reset";
-            mail.Body = "Click the following link to reset your password " + callbackUrl;
-            mail.IsBodyHtml = true;
-            SmtpClient smtp = new SmtpClient();
-            smtp.Host = "smtp.gmail.com";
-            smtp.Credentials = new System.Net.NetworkCredential("rasikcoderfoundry@gmail.com", "Password-1!");
-            smtp.EnableSsl = true;
+            MailMessage mail = new MailMessage(_emailFrom, _emailTo, subject, body);
+            mail.IsBodyHtml = _isBodyHTML;
+            //mail.To.Add(new MailAddress(_emailTo));
+
+            //Attachements
+            if (_attachements != null)
+            {
+                foreach (string att in _attachements)
+                {
+                    System.Net.Mail.Attachment attachment;
+                    attachment = new System.Net.Mail.Attachment(att);//the adress to the file
+                    mail.Attachments.Add(attachment);
+                }
+            }
+
+            SmtpClient smtp = new SmtpClient
+            {
+                Host = "smtp.gmail.com",
+                Port = 587,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                Credentials = new System.Net.NetworkCredential("rasikbugtracker@gmail.com", "Rodr1ras1k1!"),
+                Timeout = 3000
+            };
+
             smtp.Send(mail);
         }
 
@@ -512,6 +528,12 @@ namespace BugTracker.Controllers
                 {
                     _signInManager.Dispose();
                     _signInManager = null;
+                }
+
+                if (db != null)
+                {
+                    db.Dispose();
+                    db = null;
                 }
             }
 

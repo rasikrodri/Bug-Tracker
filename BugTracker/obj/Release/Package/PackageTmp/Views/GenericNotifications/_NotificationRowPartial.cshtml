@@ -1,0 +1,61 @@
+﻿@using BugTracker.Models
+@using Blog
+
+
+
+
+@{
+    GenericNotification notification = Model;
+    <tr>
+        <td>@notification.Title</td>
+        @if (notification.FromUser != null)
+        {
+            <td>@notification.FromUser.DisplayName</td>
+        }
+        else
+        {
+            <td>admin</td>
+        }
+        <td>@TextParsing.GetWordsFromHTML_EqualToCharAmmount_Regex(notification.Message, 100).ToString()....</td>
+        <td>@notification.Created.ToLocalTime().ToString("dd MMM yyyy h:mm tt")</td>
+        <td class="action">
+            @Html.ActionLink(" ", "Details", new { id = notification.Id }, new { @class = "btn btn-success icon-zoom-in", data_toggle = "tooltip", data_original_title = "View" })
+            
+            <span href="#myModal" role="button" data-target="#@notification.Id.ToString()" data-toggle="modal">
+                <a class="btn btn-danger icon-trash" data-toggle="tooltip" data-original-title="Delete"></a>
+            </span>
+
+            <!--#Modal-->
+            <div class="modal fade" id="@notification.Id.ToString()" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content" style="background-color:rgb(231, 239, 239)">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times</button>
+                            <h4 class="modal-title" id="myModalLabel">Warning</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row clearfix">
+                                <div class="col-md-1 column"></div>
+                                <div class="col-md-11 column">
+                                    <div class="row clearfix">
+                                        <h4>Are you sure you want to delete the selected message?</h4>
+                                        <h4>"@notification.Title"</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer" style="background-color:rgb(231, 239, 239)">
+                            <div class="form-actions no-color">
+                                @Html.ActionLink("Delete", "DeleteOne", "GenericNotifications", new { id = notification.Id, query = @ViewBag.currentQuery, page = @ViewBag.Page }, new { @class = "btn btn-default"})
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </td>
+    </tr>
+}

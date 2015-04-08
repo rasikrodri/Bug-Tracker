@@ -1,0 +1,213 @@
+﻿@model BugTracker.Models.Ticket
+
+
+@{
+    ViewBag.Controller = "Tickets";
+    ViewBag.Action = "Create";
+}
+
+<style>
+    textarea {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: inherit;
+        height: auto;
+        max-width: 1000px;
+    }
+
+    textarea {
+        height: auto;
+    }
+</style>
+
+@using (Html.BeginForm("Create", "Tickets", FormMethod.Post, new { enctype = "multipart/form-data" }))//Needed to be able to upload files
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    @Html.HiddenFor(model => model.Created)@*Need to store so it comes back because it cannot receive a null value*@
+
+
+    <!-- Tools -->
+    <section id="tools">
+        <ul class="breadcrumb" id="breadcrumb">
+            <li class="title" id="pagetitle"><a href="@Url.Action("Index", ViewBag.Controller)">@ViewBag.Controller</a></li>
+            @if (ViewBag.Action != null && ViewBag.Id == null)
+            {
+                <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller)">@ViewBag.Action</a></li>
+            }
+            else if (ViewBag.Action != null && ViewBag.Id != null)
+            {
+                <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller, new { id = ViewBag.Id })">@ViewBag.Action</a></li>
+            }
+        </ul>
+        @*<div id="toolbar">
+            <div class="btn-group">
+                <a class="btn" data-toggle="toolbar-tooltip" href="#" title="" data-original-title="Building">
+                    <i class="icon-building"></i>
+                </a>
+                <a class="btn" data-toggle="toolbar-tooltip" href="#" title="" data-original-title="Laptop">
+                    <i class="icon-laptop"></i>
+                </a>
+                <a class="btn" data-toggle="toolbar-tooltip" href="#" title="" data-original-title="Calendar">
+                    <i class="icon-calendar"></i>
+                    <span class="badge">3</span>
+                </a>
+                <a class="btn" data-toggle="toolbar-tooltip" href="#" title="" data-original-title="Lemon">
+                    <i class="icon-lemon"></i>
+                </a>
+            </div>
+        </div>*@
+    </section>
+
+<!-- Content -->
+<div id='content'>
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            <i class='icon-edit icon-large'></i>
+            Ticket Creation Form
+        </div>
+        <div class='panel-body'>
+            <form>
+                <fieldset>
+                    <div class="form-group col-md-6">
+                        @Html.LabelFor(model => model.Title, htmlAttributes: new {@class = "control-label" })
+                        @Html.EditorFor(model => model.Title, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter Title" } })
+                        @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="row"></div>
+                    <div class="form-group col-md-10">
+                        <label class="control-label" for="User">Description</label>
+                        @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label" })
+                        @Html.TextAreaFor(model => model.Description, 10, 40, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="row"></div>
+                    <div class="form-group col-md-4">
+                        @Html.LabelFor(model => model.ProjectId, "Project Name", htmlAttributes: new { @class = "control-label" })
+                        @Html.DropDownList("ProjectId", null, htmlAttributes: new { @class = "form-control", @onchange = "javascript:GetProjectUsers(this.value);" })
+                        @Html.ValidationMessageFor(model => model.ProjectId, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="row"></div>
+                    <div class="form-group col-md-4">
+                        @Html.LabelFor(model => model.TicketTypeId, "TicketType", htmlAttributes: new { @class = "control-label" })
+                        @Html.DropDownList("TicketTypeId", null, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.TicketTypeId, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="row"></div>
+                    <div class="form-group col-md-4">
+                        @Html.LabelFor(model => model.TicketPriorityId, "Ticket Priority", htmlAttributes: new { @class = "control-label" })
+                        @Html.DropDownList("TicketPriorityId", null, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.TicketPriorityId, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="row"></div>
+                    <div class="form-group col-md-4">
+                        @Html.LabelFor(model => model.TicketStatusId, "Ticket Status", htmlAttributes: new { @class = "control-label" })
+                        @Html.DropDownList("TicketStatusId", null, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.TicketStatusId, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="row"></div>
+                    @if (ViewContext.HttpContext.User.IsInRole("Admin"))
+                    {
+                        <div class="form-group col-md-4">
+                            @Html.LabelFor(model => model.AssignedToUserId, "Assigned To User", htmlAttributes: new { @class = "control-label" })
+                            @Html.DropDownList("AssignedToUserId", null, htmlAttributes: new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.AssignedToUserId, "", new { id = "AssignedToUserId", @class = "text-danger" })
+                        </div>
+                        <div class="row"></div>
+                    }
+                    <div class="row"></div>
+                    <div class="form-group col-md-4">
+                        @*@Html.HiddenFor(model => model.TicketAttachments)
+                        @Html.Label("Image To Upload:", htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10" style="text-align:center; align-content:center">
+                            <input type="file" value="Choose Image" id="filesUploaded" name="filesUploaded" class="btn btn-default" />
+                        </div>*@
+
+                        <h4>Select files to upload </h4>
+                        <input type="file" name="files" value="" multiple="multiple" />
+                        @Html.ValidationMessage("Files", new { @class = "text-danger" })
+                        @*<input type="submit" value="Upload You Image" title="Uplad" />*@
+                        @*<div style="color:Red;font-size:14px">@ViewBag.Message</div>*@
+                    </div>
+                    <div class="row"></div>
+                    <div class="form-group col-md-10">
+                        <label class="control-label" for="User">Attachements Description</label>
+                        <textarea class="form-control" name="attachementsdescription" id="attachementsdescription" cols="40" id="Description" name="AttachemntDescription" rows="10"></textarea>
+                        @Html.ValidationMessage("AttachmentDescription", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group col-md-12" style="text-align:right">
+                            <input type="submit" value="Create" class="btn btn-default" />
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+    
+
+    @*Reference to the js ckeditor*@
+    <script src="~/Scripts/ckeditor/ckeditor.js"></script>
+    
+}
+
+@Html.ActionLink("Back to List", "Index")
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+<script>
+    CKEDITOR.replace('Description', {
+        toolbar: [
+
+            { name: 'document', items: ['Maximize'] },	// Defines toolbar group with name (used to create voice label) and items in 3 subgroups.
+            //'/',																					// Line break - next group will be placed in new line.
+            ['FontSize'],
+            ['Bold', 'Italic', 'Underline', 'StrikeThrough', '-', 'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', 'Find', '-', 'Outdent', 'Indent', '-', 'Print'],
+            ['NumeredList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+
+        ]
+    });
+
+
+</script>
+
+
+
+
+
+<script language="javascript" type="text/javascript">
+    function GetProjectUsers(_ProjectId) {
+        var procemessage = "<option value='0'> Please wait...</option>";
+        $("#AssignedToUserId").html(procemessage).show();
+        var url = "/Tickets/GetProjectUsers/";
+
+        $.ajax({
+            url: url,
+            data: { projectid: _ProjectId },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                //var markup = "<option value='0'>Select Assignee</option>";
+                var markup;
+                for (var x = 0; x < data.length; x++) {
+                    markup += "<option value=" + data[x].Value + ">" + data[x].Text + "</option>";
+                }
+                $("#AssignedToUserId").html(markup).show();
+            },
+            error: function (reponse) {
+                alert("error : " + reponse);
+            }
+        });
+
+    }
+</script>
+}

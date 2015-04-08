@@ -1,0 +1,135 @@
+﻿@model BugTracker.Models.TicketComment
+@using BugTracker.Models
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Controller = "TicketComments";
+    ViewBag.Action = "Create";
+}
+
+<style>
+    textarea {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: inherit;
+        height: auto;
+        max-width: 1000px;
+    }
+
+    textarea {
+        height: auto;
+    }
+</style>
+
+@using (Html.BeginForm("Create", "TicketComments", new { returnToController = ViewBag.returnToController, returnToAction = ViewBag.returnToAction }, FormMethod.Post, null))//Needed to be able to upload files
+{
+    @Html.AntiForgeryToken()
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    @Html.HiddenFor(m => m.TicketId)
+
+
+    <!-- Tools -->
+    <section id="tools">
+        <ul class="breadcrumb" id="breadcrumb">
+            @{
+    string returnToController = ViewBag.returnToController;
+    string returnToAction = ViewBag.returnToAction;
+
+    if (returnToController != null)
+    {
+        string adress = "/" + @returnToController + "/" + @returnToAction;
+
+        
+
+             <li class="active">@Html.ActionLink(adress.ToString(), returnToAction.ToString(), returnToController.ToString(), new { id = ViewBag.TicketId }, null)</li>
+
+                    @*<li class="active"><a href="@adress">@adress</a></li>*@
+        Html.HiddenFor(m => @returnToController);
+        Html.HiddenFor(m => @returnToAction);
+    }
+    else
+    {
+                    <li class="title" id="pagetitle"><a href="@Url.Action("Index", ViewBag.Controller)">@ViewBag.Controller</a></li>
+        if (ViewBag.Action != null && ViewBag.Id == null)
+        {
+                        <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller)">@ViewBag.Action</a></li>
+        }
+        else if (ViewBag.Action != null && ViewBag.Id != null)
+        {
+                        <li class="active"><a href="@Url.Action(ViewBag.Action, ViewBag.Controller, new { id = ViewBag.Id })">@ViewBag.Action</a></li>
+        }
+    }
+            }
+            
+            
+            
+        </ul>
+        <div id="toolbar">
+           
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div id='content'>
+        <div class='panel panel-default'>
+            <div class='panel-heading'>
+                <i class='icon-edit icon-large'></i>
+                Comment Creation Form for "Ticket# @ViewBag.TicketId - @ViewBag.TicketTitle.ToString()"
+            </div>
+            <div class='panel-body'>
+                <form>
+                    <fieldset>
+                        <div class="row"></div>
+
+                            @if (Model.Ticket.AssignedToUserId == HttpContext.Current.User.Identity.GetUserId() || HttpContext.Current.User.IsInRole("Project Manager"))
+                            {
+                                <div class="form-group col-md-4">
+                                    @Html.LabelFor(model => model.Ticket.TicketStatusId, "Ticket Status", htmlAttributes: new { @class = "control-label" })
+                                    @Html.DropDownList("TicketStatusId", null, htmlAttributes: new { @class = "form-control" })
+                                    @Html.ValidationMessageFor(model => model.Ticket.TicketStatusId, "", new { @class = "text-danger" })
+                                </div>
+                                <div class="row"></div>
+                            }
+                        
+                        
+                        <div class="form-group col-md-10">
+                            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label" })
+                            @Html.TextAreaFor(model => model.Description, 10, 40, htmlAttributes: new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                        </div>                        
+                        <div class="form-group col-md-12" style="text-align:right">
+                            <input type="submit" value="Create" name="Create" data-bind="@ViewBag.returnToController; ViewBag.returnToAction;" class="btn btn-default" />
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    
+    @*Reference to the js ckeditor*@
+    <script src="~/Scripts/ckeditor/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('Description', {
+            toolbar: [
+
+                { name: 'document', items: ['Maximize'] },	// Defines toolbar group with name (used to create voice label) and items in 3 subgroups.
+                //'/',																					// Line break - next group will be placed in new line.
+                ['FontSize'],
+                ['Bold', 'Italic', 'Underline', 'StrikeThrough', '-', 'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', 'Find', '-', 'Outdent', 'Indent', '-', 'Print'],
+                ['NumeredList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+
+            ]
+        });
+    </script>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

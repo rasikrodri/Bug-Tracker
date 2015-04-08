@@ -179,7 +179,11 @@ namespace BugTracker.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                if (db != null)
+                {
+                    db.Dispose();
+                    db = null;
+                }
             }
             base.Dispose(disposing);
         }

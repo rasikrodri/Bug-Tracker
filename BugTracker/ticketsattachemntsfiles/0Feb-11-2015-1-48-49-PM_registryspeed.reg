@@ -1,0 +1,16 @@
+Windows Registry Editor Version 5.00
+
+;Made by RAJA CRN  SpicyTricks.com
+
+[HKEY_CURRENT_USERControl PanelDesktop]
+"AutoEndTasks"="1"
+"HungAppTimeout"="1000"
+"MenuShowDelay"="8"
+"WaitToKillAppTimeout"="2000"
+"LowLevelHooksTimeout"="1000"
+
+[HKEY_CURRENT_USERControl PanelMouse]
+"MouseHoverTime"="8"
+
+[HKEY_LOCAL_MACHINESYSTEMCurrentControlSetControl]
+"WaitToKillServiceTimeout"="2000"

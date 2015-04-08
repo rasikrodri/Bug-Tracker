@@ -1,0 +1,95 @@
+﻿@model BugTracker.Models.TicketAttachement
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<style>
+    textarea {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: inherit;
+        height: auto;
+        max-width: 1000px;
+    }
+
+    textarea {
+        height: auto;
+    }
+</style>
+
+<h2>Editing Ticket Attachement</h2>
+
+
+@using (Html.BeginForm("Edit", "TicketAttachements",  FormMethod.Post, new { enctype = "multipart/form-data" }))//Needed to be able to upload files
+{
+    @Html.AntiForgeryToken()
+    
+    @Html.HiddenFor(m => m.TicketId)
+    @Html.HiddenFor(m => m.FilePath)
+    @Html.HiddenFor(m => m.FileUrl)
+    @Html.HiddenFor(m => m.Created)
+    @Html.HiddenFor(m => m.UserId)
+
+    <div class="form-horizontal">
+        <h4>TicketAttachement</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.id)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TicketId, "Ticket Name:", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <label class="control-label">@ViewBag.TicketTitle</label>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <label class="control-label col-md-2" style="align-content:center">Current File:</label>
+            <div class="col-md-10">
+                <label class="control-label">@ViewBag.PrevFileName</label>
+            </div>
+            @Html.Label("Replace With File:", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10" style="text-align:center; align-content:center">
+                <input type="file" value="Choose a New File" id="fileToUpload" name="fileToUpload" class="btn btn-default" />
+            </div>
+        </div>        
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Description, 10, 40, null)
+                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+    
+    
+    @*Reference to the js ckeditor*@
+    <script src="~/Scripts/ckeditor/ckeditor.js"></script>
+    <script>
+    CKEDITOR.replace('Description', {
+        toolbar: [
+
+            { name: 'document', items: ['Maximize', 'Templates'] },	// Defines toolbar group with name (used to create voice label) and items in 3 subgroups.
+            //'/',																					// Line break - next group will be placed in new line.
+            ['Styles', 'Format', 'Font', 'FontSize', 'TextColor', 'BGColor'],
+            ['Bold', 'Italic', 'Underline', 'StrikeThrough', '-', 'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', 'Find', 'Replace', '-', 'Outdent', 'Indent', '-', 'Print'],
+            ['ShowBlocks', 'NumeredList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+
+        ]
+    });
+    </script>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", "Tickets")
+</div>

@@ -267,35 +267,45 @@ namespace BugTracker.Controllers
         [Authorize(Roles = "Submitter")]
         public ActionResult Create()
         {
+            
             ViewBag.Controller = "Tickets";
             @ViewBag.Action = "Create";
 
 
-            var priority = db.TicketPriorities.FirstOrDefault(p => p.Name == "Normal");
-            var openstatus = db.TicketStatus.FirstOrDefault(s => s.Name == "Open");
-            var type = db.TicketTypes.FirstOrDefault(p => p.Name == "Develope");
+            //try
+            //{
+                var priority = db.TicketPriorities.FirstOrDefault(p => p.Name == "Normal");
+                var openstatus = db.TicketStatus.FirstOrDefault(s => s.Name == "Open");
+                var type = db.TicketTypes.FirstOrDefault(p => p.Name == "Develope");
 
-            
 
-            ViewBag.ProjectId = new SelectList(db.Projects.OrderBy(u => u.Name), "Id", "Name");
-            ViewBag.TicketPriorityId = new SelectList(db.TicketPriorities, "Id", "Name", new { id = priority.Id });
-            ViewBag.TicketStatusId = new SelectList(db.TicketStatus, "id", "Name", new { id = openstatus.id});
-            ViewBag.TicketTypeId = new SelectList(db.TicketTypes, "Id", "Name", new { id = type.Id });
 
-            //The asignet to user is only shown after the project has been selected
-            //Because we need to pass the list of users in that project
-            var defaultProject = db.Projects.OrderBy(u => u.Name).FirstOrDefault();
-            UserProjectsHelper projectHelper = new UserProjectsHelper();
-            var projectUsers = new List<ApplicationUser>();
-            foreach (var u in db.Users)
-                if (projectHelper.IsOnProject(u.Id, defaultProject.Id))
-                    projectUsers.Add(u);
+                ViewBag.ProjectId = new SelectList(db.Projects.OrderBy(u => u.Name), "Id", "Name");
+                ViewBag.TicketPriorityId = new SelectList(db.TicketPriorities, "Id", "Name", new { id = priority.Id });
+                ViewBag.TicketStatusId = new SelectList(db.TicketStatus, "id", "Name", new { id = openstatus.id });
+                ViewBag.TicketTypeId = new SelectList(db.TicketTypes, "Id", "Name", new { id = type.Id });
 
-            ViewBag.AssignedToUserId = new SelectList(projectUsers.OrderBy(u => u.DisplayName), "Id", "DisplayName");
+                //The asignet to user is only shown after the project has been selected
+                //Because we need to pass the list of users in that project
+                var defaultProject = db.Projects.OrderBy(u => u.Name).FirstOrDefault();
+                UserProjectsHelper projectHelper = new UserProjectsHelper();
+                var projectUsers = new List<ApplicationUser>();
+                foreach (var u in db.Users)
+                    if (projectHelper.IsOnProject(u.Id, defaultProject.Id))
+                        projectUsers.Add(u);
 
-            //var projectUsers = db.Users.Where(u => defaultProject.ProjectUsers.Any(a => a.User.UserName == u.UserName));
-            //ViewBag.AssignedToUserId = new SelectList(projectUsers.OrderBy(u => u.DisplayName), "Id", "DisplayName");
-            //ViewBag.AssignedToUserId = new SelectList(db.Users.Where(u => u.Roles.Any(r => r.RoleId == "Developer")).OrderBy(u => u.DisplayName), "Id", "DisplayName");
+                ViewBag.AssignedToUserId = new SelectList(projectUsers.OrderBy(u => u.DisplayName), "Id", "DisplayName");
+
+                //var projectUsers = db.Users.Where(u => defaultProject.ProjectUsers.Any(a => a.User.UserName == u.UserName));
+                //ViewBag.AssignedToUserId = new SelectList(projectUsers.OrderBy(u => u.DisplayName), "Id", "DisplayName");
+                //ViewBag.AssignedToUserId = new SelectList(db.Users.Where(u => u.Roles.Any(r => r.RoleId == "Developer")).OrderBy(u => u.DisplayName), "Id", "DisplayName");
+
+            //}
+            //catch (Exception e)
+            //{
+            //    ViewBag.errorMessage = e.Message;
+            //    return View("Error");
+            //}
 
             var ticket = new Ticket();
 

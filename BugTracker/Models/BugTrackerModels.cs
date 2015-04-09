@@ -98,6 +98,7 @@ namespace BugTracker.Models
 
         public string OwnerUserId { get; set; }
 
+        
         [Required]
         [AllowHtml]
         [Display(Name = "Project")]

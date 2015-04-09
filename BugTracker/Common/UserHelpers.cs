@@ -463,8 +463,17 @@ namespace BugTracker.Models
                     && h.ObjectType == ticketType).OrderByDescending(h => h.Changed);
             foreach (var item in entries)
             {
-                Dictionary<string, object> values = ByteArrayToObject(item.Values) as Dictionary<string, object>;
-                list.Add(ConvertDictionaryToObject<Ticket>(values));
+                try
+                {
+                    Dictionary<string, object> values = ByteArrayToObject(item.Values) as Dictionary<string, object>;
+                    list.Add(ConvertDictionaryToObject<Ticket>(values));
+                }
+                catch
+                {
+                    //In the case of an error create a fake history ticket with the explanation as the description
+                    Dictionary<string, object> dict = new Dictionary<string,object>();
+                    list.Add(new Ticket() {Updated = item.Changed,  Description = "An error has ocurred when retriving this history item" });
+                }
             }
 
             var tempEntries = entries.ToList();
@@ -494,7 +503,17 @@ namespace BugTracker.Models
         public static Dictionary<string, object[]> GetTicketLastHistoryForEveryProperty(Ticket ticket)
         {
             ApplicationDbContext db = new ApplicationDbContext();
-            var dict = GetTheLatestTicketChangesToAllTheProperties(ticket);
+            Dictionary<string,object[]> dict = null;
+            try
+            {
+                dict = GetTheLatestTicketChangesToAllTheProperties(ticket);
+            }
+            catch
+            {
+                dict = new Dictionary<string, object[]>();
+                dict.Add("Description", new object[2] { "An error has ocurred when retrieving last history for every property", DateTimeOffset.Now });
+            }
+            
             var result = new Dictionary<string, object[]>();
             string stringId;
             int Id;
@@ -558,7 +577,19 @@ namespace BugTracker.Models
                 history.ObjectId = (newObj as dynamic).Id;
                 history.Changed = DateTimeOffset.Now;
                 history.WhoMadeChangesId = HttpContext.Current.User.Identity.GetUserId();
-                history.Values = ObjectToByteArray(difference);
+
+                try
+                {
+                    history.Values = ObjectToByteArray(difference);
+                }
+                catch (Exception e)
+                {
+                    //Create a new dictionary containing the error
+                    var errorDict = new Dictionary<string, string>();
+                    errorDict.Add("Description", "Error while saving ticket history!  \n" + e.Message);
+                    history.Values = ObjectToByteArray(errorDict);
+                }
+                
 
                 //var b = db.GenericHistories.AsNoTracking().FirstOrDefault(h => h.Id == 2);
                 //var reversed = ByteArrayToObject(b.Values);
@@ -581,14 +612,23 @@ namespace BugTracker.Models
                     && h.ObjectType == ticketType).OrderByDescending(h => h.Changed);
             foreach(var item in entries)
             {
-                Dictionary<string, object> values = ByteArrayToObject(item.Values) as Dictionary<string, object>;
-                foreach (var keypair in values)
+                try
                 {
-                    if (!result.ContainsKey(keypair.Key))
+                    Dictionary<string, object> values = ByteArrayToObject(item.Values) as Dictionary<string, object>;
+                    foreach (var keypair in values)
                     {
-                        result.Add(keypair.Key,  new object[2]{keypair.Value, item.Changed});
+                        if (!result.ContainsKey(keypair.Key))
+                        {
+                            result.Add(keypair.Key, new object[2] { keypair.Value, item.Changed });
+                        }
                     }
-                }            
+                }
+                catch
+                {
+                    //If there is an error when converting Byte array to object or getting any property
+                    //Just skip it
+                    throw;
+                }
             }
             return result;
         }
@@ -619,8 +659,16 @@ namespace BugTracker.Models
 
             var bf = new BinaryFormatter();
             var ms = new MemoryStream();
-            bf.Serialize(ms, obj);
-            return ms.ToArray();
+            try
+            {
+                bf.Serialize(ms, obj);
+                return ms.ToArray();
+            }
+            finally
+            {
+                ms.Dispose();
+            }
+            
 
         }
         private static Object ByteArrayToObject(byte[] arrBytes)
@@ -629,9 +677,16 @@ namespace BugTracker.Models
             var binForm = new BinaryFormatter();
             memStream.Write(arrBytes, 0, arrBytes.Length);
             memStream.Seek(0, SeekOrigin.Begin);
-            Object obj = (Object)binForm.Deserialize(memStream);
-            return obj;
 
+            try
+            {
+                Object obj = (Object)binForm.Deserialize(memStream);
+                return obj;
+            }
+            finally
+            {
+                memStream.Dispose();                
+            }
         }
         /// <summary>
         /// Give me an object and I will turn it into a dicionary
@@ -708,42 +763,42 @@ namespace BugTracker.Models
     }
 
 
-    public class EmailService : IIdentityMessageService
-    {
-        public async Task SendAsync(IdentityMessage message)
-        {
-            await configSendGridasync(message);
-        }
+    //public class EmailService : IIdentityMessageService
+    //{
+    //    public async Task SendAsync(IdentityMessage message)
+    //    {
+    //        await configSendGridasync(message);
+    //    }
 
-        // Use NuGet to install SendGrid (Basic C# client lib) 
-        private async Task configSendGridasync(IdentityMessage message)
-        {
-            var myMessage = new SendGridMessage();
-            myMessage.AddTo(message.Destination);
-            myMessage.From = new System.Net.Mail.MailAddress(
-                                "Joe@contoso.com", "Joe S.");
-            myMessage.Subject = message.Subject;
-            myMessage.Text = message.Body;
-            myMessage.Html = message.Body;
+    //    // Use NuGet to install SendGrid (Basic C# client lib) 
+    //    private async Task configSendGridasync(IdentityMessage message)
+    //    {
+    //        var myMessage = new SendGridMessage();
+    //        myMessage.AddTo(message.Destination);
+    //        myMessage.From = new System.Net.Mail.MailAddress(
+    //                            "Joe@contoso.com", "Joe S.");
+    //        myMessage.Subject = message.Subject;
+    //        myMessage.Text = message.Body;
+    //        myMessage.Html = message.Body;
 
-            var credentials = new NetworkCredential(
-                       ConfigurationManager.AppSettings["mailAccount"],
-                       ConfigurationManager.AppSettings["mailPassword"]
-                       );
+    //        var credentials = new NetworkCredential(
+    //                   ConfigurationManager.AppSettings["mailAccount"],
+    //                   ConfigurationManager.AppSettings["mailPassword"]
+    //                   );
 
-            // Create a Web transport for sending email.
-            var transportWeb = new Web(credentials);
+    //        // Create a Web transport for sending email.
+    //        var transportWeb = new Web(credentials);
 
-            // Send the email.
-            if (transportWeb != null)
-            {
-                await transportWeb.DeliverAsync(myMessage);
-            }
-            else
-            {
-                Trace.TraceError("Failed to create Web transport.");
-                await Task.FromResult(0);
-            }
-        }
-    }
+    //        // Send the email.
+    //        if (transportWeb != null)
+    //        {
+    //            await transportWeb.DeliverAsync(myMessage);
+    //        }
+    //        else
+    //        {
+    //            Trace.TraceError("Failed to create Web transport.");
+    //            await Task.FromResult(0);
+    //        }
+    //    }
+    //}
 }

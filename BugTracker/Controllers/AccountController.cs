@@ -312,7 +312,7 @@ namespace BugTracker.Controllers
                 Port = 587,
                 EnableSsl = true,
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                Credentials = new System.Net.NetworkCredential("rasikbugtracker@gmail.com", "!Garibaldy!Greco"),
+                Credentials = new System.Net.NetworkCredential("rasikbugtrakcer2@gmail.com", "!Garibaldy!Greco"),
                 Timeout = 3000
             };
 

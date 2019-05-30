@@ -42,6 +42,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+**/bin/
+**/obj/
+
 \.vs/BugTracker/v15/\.suo
 
 \.vs/BugTracker/v15/Server/sqlite3/db\.lock
